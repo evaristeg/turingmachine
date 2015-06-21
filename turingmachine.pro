@@ -1,7 +1,7 @@
 TEMPLATE = app
 QT += widgets
 CONFIG += qt
-CONFIG += debug
+#CONFIG += debug
 QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++
 QMAKE_LFLAGS += -stdlib=libc++
 
