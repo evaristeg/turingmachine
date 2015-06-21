@@ -129,19 +129,11 @@ Halt const Halt::instance;
 
 TuringMachine::TuringMachine(int tapeLen, QWidget * parent)
 : QWidget(parent)
-, tape(tapeLen)
-, pos(0)
-, state(scan)
 , speed(1000)
-, started(false)
-, oldpos(0)
-, escCtr(0)
+, paused(false)
 {
     qsrand(time.msecsSinceStartOfDay());
-    for (int i = 0; i < tapeLen; ++i) {
-        tape[i] = QColor::fromHslF(qreal(qrand()) / RAND_MAX, .9, .5);
-    }
-    registers.lo = registers.hi = tape[pos];
+    reset(tapeLen);
     time.start();
 }
 
@@ -154,21 +146,50 @@ void TuringMachine::setSpeed(int ms)
 {
     speed = ms;
     if (speed == 1500) {
-        speed = 1000000000;
+        pause();
     }
+    else {
+        unpause();
+    }
+}
+
+void TuringMachine::pause()
+{
+    paused = true;
+}
+
+void TuringMachine::unpause()
+{
+    paused = false;
+    oldtime = time.elapsed();
+    update();
+}
+
+void TuringMachine::reset(int tapeLen)
+{
+    tape.resize(tapeLen);
+    for (int i = 0; i < tapeLen; ++i) {
+        tape[i] = QColor::fromHslF(qreal(qrand()) / RAND_MAX, .9, .5);
+    }
+    pos = oldpos = escCtr = 0;
+    state = scan;
+    registers.lo = registers.hi = tape[pos];
+    started = false;
 }
 
 void TuringMachine::paintEvent(QPaintEvent * event)
 {
-    int curtime = time.elapsed();
-    if (!started) {
-        oldpos = pos;
-        progress = 0.;
+    if (!paused) {
+        int curtime = time.elapsed();
+        if (!started) {
+            oldpos = pos;
+            progress = 0.8;
+            oldtime = curtime;
+            started = true;
+        }
+        progress += float(curtime - oldtime) / speed;
         oldtime = curtime;
-        started = true;
     }
-    progress += float(curtime - oldtime) / speed;
-    oldtime = curtime;
 
     while (state != halt && progress >= 1.) {
         if (state == scan) {
@@ -259,7 +280,7 @@ void TuringMachine::paintEvent(QPaintEvent * event)
     painter.drawPath(box);
     painter.restore();
 
-    if (state != halt) {
+    if (!paused && state != halt) {
         update();
     }
 }

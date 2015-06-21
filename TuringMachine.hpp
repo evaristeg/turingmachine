@@ -31,12 +31,13 @@ class TuringMachine : public QWidget
 
 public:
     TuringMachine(int tapeLen, QWidget * parent = 0);
-
-    //QSize minimumSizeHint() const Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
 
 public slots:
     void setSpeed(int ms);
+    void pause();
+    void unpause();
+    void reset(int tapeLen);
 
 protected:
     void paintEvent(QPaintEvent * event) Q_DECL_OVERRIDE;
@@ -50,6 +51,7 @@ private:
     QTime time;
     int speed;
     bool started;
+    bool paused;
     int oldpos;
     int oldtime;
     float progress;
