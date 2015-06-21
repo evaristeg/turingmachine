@@ -2,133 +2,13 @@
 #include <QPainter>
 #include <algorithm>
 #include <cmath>
-
-// Black version is a little easier to visualize
-#define AllowBlackTape() 0
+#include <utility>
 
 double const pi = 3.141592653589793238463;
 
-State const * scan;
-State const * locate;
-State const * insert;
-State const * fetch;
-State const * halt;
-
-static float hueSep(QColor const & a, QColor const & b)
-{
-    return fmod(b.hslHueF() - a.hslHueF() + 1., 1.);
-}
-
-class Scan : public State
-{
-    static Scan const instance;
-    Scan() { scan = this; }
-public:
-    virtual Transition eval(QColor const & current, Registers const & r) const
-    {
-        if (hueSep(current, r.lo) + hueSep(r.lo, r.hi) < 1.) {
-            Transition t{ current, LEFT, scan, { current, r.hi, Qt::black } };
-            return t;
-        }
-        else {
-            #if AllowBlackTape()
-            Transition t{ Qt::black, RIGHT, locate, { r.lo, current, current } };
-            #else
-            Transition t{ current, RIGHT, locate, { r.lo, current, current } };
-            #endif
-            return t;
-        } 
-    }
-    virtual char const * label() const { return "S"; }
-};
-
-class Locate : public State
-{
-    static Locate const instance;
-    Locate() { locate = this; }
-public:
-    virtual Transition eval(QColor const & current, Registers const & r) const
-    {
-        if (hueSep(r.lo, current) + hueSep(current, r.samp) < 1.) {
-            Transition t{ current, RIGHT, locate, { r.lo, r.hi, r.samp } };
-            return t;
-        }
-        else {
-            Transition t{ current, LEFT, insert, { r.lo, r.hi, r.samp } };
-            return t;
-        }
-    }
-    virtual char const * label() const { return "L"; }
-};
-
-class Insert : public State
-{
-    static Insert const instance;
-    Insert() { insert = this; }
-public:
-    virtual Transition eval(QColor const & current, Registers const & r) const
-    {
-        #if AllowBlackTape()
-        if (current != Qt::black) {
-        #else
-        if (hueSep(r.lo, current) + hueSep(current, r.samp) < 1.) {
-        #endif
-            Transition t{ r.samp, LEFT, insert, { r.lo, r.hi, current } };
-            return t;
-        }
-        else {
-            Transition t{ r.samp, LEFT, fetch, { r.lo, r.hi, Qt::black } };
-            return t;
-        }
-    }
-    virtual char const * label() const { return "I"; }
-};
-
-class Fetch : public State
-{
-    static Fetch const instance;
-    Fetch() { fetch = this; }
-public:
-    virtual Transition eval(QColor const & current, Registers const & r) const
-    {
-        if (hueSep(r.lo, current) + hueSep(current, r.hi) < 1.) {
-            #if AllowBlackTape()
-            Transition t{ Qt::black, RIGHT, locate, { r.lo, current, current } };
-            #else
-            Transition t{ current, RIGHT, locate, { r.lo, current, current } };
-            #endif
-            return t;
-        }
-        else {
-            Transition t{ current, LEFT, scan, { current, current, Qt::black } };
-            return t;
-        }
-    }
-    virtual char const * label() const { return "F"; }
-};
-
-class Halt : public State
-{
-    static Halt const instance;
-    Halt() { halt = this; }
-public:
-    virtual Transition eval(QColor const & current, Registers const & r) const
-    {
-        Transition t{ current, LEFT, halt, { r.lo, r.hi, r.samp } };
-        return t;
-    }
-    virtual char const * label() const { return "H"; }
-};
-
-Scan const Scan::instance;
-Locate const Locate::instance;
-Insert const Insert::instance;
-Fetch const Fetch::instance;
-Halt const Halt::instance;
-
-
-TuringMachine::TuringMachine(int tapeLen, QWidget * parent)
+TuringMachine::TuringMachine(std::unique_ptr<Machine> && machine, int tapeLen, QWidget * parent)
 : QWidget(parent)
+, machine(std::move(machine))
 , speed(1000)
 , paused(false)
 {
@@ -171,10 +51,20 @@ void TuringMachine::reset(int tapeLen)
     for (int i = 0; i < tapeLen; ++i) {
         tape[i] = QColor::fromHslF(qreal(qrand()) / RAND_MAX, .9, .5);
     }
-    pos = oldpos = escCtr = 0;
-    state = scan;
-    registers.lo = registers.hi = tape[pos];
+    pos = oldpos = 0;
+    machine->reset(tapeLen, tape[0]);
     started = false;
+}
+
+void TuringMachine::renderBox(QPainter & painter, QColor const & fill) const
+{
+    QPainterPath box;
+    box.addRect(-.5, -1., 1., 1.);
+    painter.save();
+    painter.setPen(QPen(Qt::black, 0.05, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
+    painter.setBrush(fill);
+    painter.drawPath(box);
+    painter.restore();
 }
 
 void TuringMachine::paintEvent(QPaintEvent * event)
@@ -191,23 +81,13 @@ void TuringMachine::paintEvent(QPaintEvent * event)
         oldtime = curtime;
     }
 
-    while (state != halt && progress >= 1.) {
-        if (state == scan) {
-            escCtr++;
-            if (escCtr == tape.size()) {
-                state = halt;
-                break;
-            }
-        }
-        else {
-            escCtr = 0;
-        }
+    while (!machine->halted()  && progress >= 1.) {
         oldpos = pos;
-        Transition t = state->eval(tape[pos], registers);
+        TapeTransition t = machine->advance(tape[pos]);
         tape[pos] = t.write;
-        pos = (pos + (t.dir == LEFT ? tape.size() - 1 : 1)) % tape.size();
-        registers = t.registers;
-        state = t.nextState;
+        if (!machine->halted()) {
+            pos = (pos + (t.dir == LEFT ? tape.size() - 1 : 1)) % tape.size();
+        }
         progress -= 1.;
     }
 
@@ -230,9 +110,6 @@ void TuringMachine::paintEvent(QPaintEvent * event)
     QPainterPath window;
     window.addRect(-.7, -1.2, 1.4, 1.4);
     window = window.subtracted(box);
-    QFont labelFont;
-    qreal fontScale = 10. / QFontMetricsF(labelFont).ascent();
-    labelFont.setPointSizeF(labelFont.pointSizeF() * fontScale);
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -255,32 +132,13 @@ void TuringMachine::paintEvent(QPaintEvent * event)
     painter.translate(0., -innerRadius);
 
     painter.save();
-    painter.setFont(labelFont);
-    painter.scale(1. / 4., 1. / 4.);
-    painter.setPen(QPen(Qt::black, 0., Qt::SolidLine));
-    painter.setBrush(Qt::black);
-    painter.drawText(-5, 2, 10, 10, Qt::AlignHCenter, state->label());
-    painter.restore();
-
-    painter.save();
     painter.setPen(Qt::NoPen);
     painter.setBrush(Qt::darkGray);
     painter.drawPath(window);
     painter.restore();
+    machine->renderHead(painter, *this);
 
-    painter.save();
-    painter.translate(-1.5, 4.5);
-    painter.setBrush(registers.lo);
-    painter.drawPath(box);
-    painter.translate(1.5, 0.);
-    painter.setBrush(registers.samp);
-    painter.drawPath(box);
-    painter.translate(1.5, 0.);
-    painter.setBrush(registers.hi);
-    painter.drawPath(box);
-    painter.restore();
-
-    if (!paused && state != halt) {
+    if (!paused && !machine->halted()) {
         update();
     }
 }

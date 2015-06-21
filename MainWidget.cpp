@@ -1,3 +1,4 @@
+#include "Machine.hpp"
 #include "MainWidget.hpp"
 #include "ResetDialog.hpp"
 #include "TuringMachine.hpp"
@@ -9,7 +10,7 @@ MainWidget::MainWidget(QWidget * parent)
 : QWidget(parent)
 {
     QGridLayout * layout = new QGridLayout(this);
-    tm = new TuringMachine(40, this);
+    tm = new TuringMachine(createMergeSort(), 40, this);
     QSlider * slider = new QSlider(Qt::Vertical, this);
     slider->setRange(20, 1500);
     slider->setValue(1000);

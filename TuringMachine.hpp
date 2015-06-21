@@ -1,37 +1,19 @@
 #pragma once
 
+#include "Machine.hpp"
 #include <QTime>
 #include <QWidget>
+#include <memory>
 #include <vector>
-
-enum Direction { LEFT, RIGHT };
-
-struct Registers {
-    QColor lo, hi, samp;
-};
-
-struct State;
-
-struct Transition {
-    QColor write;
-    Direction dir;
-    State const * nextState;
-    Registers registers;
-};
-
-struct State {
-    virtual Transition eval(QColor const & current, Registers const & r) const = 0;
-    virtual char const * label() const = 0;
-};
-
 
 class TuringMachine : public QWidget
 {
     Q_OBJECT
 
 public:
-    TuringMachine(int tapeLen, QWidget * parent = 0);
+    TuringMachine(std::unique_ptr<Machine> && machine, int tapeLen, QWidget * parent = 0);
     QSize sizeHint() const Q_DECL_OVERRIDE;
+    void renderBox(QPainter & painter, QColor const & fill) const;
 
 public slots:
     void setSpeed(int ms);
@@ -43,10 +25,9 @@ protected:
     void paintEvent(QPaintEvent * event) Q_DECL_OVERRIDE;
 
 private:
+    std::unique_ptr<Machine> machine;
     std::vector<QColor> tape;
     int pos;
-    Registers registers;
-    State const * state;
 
     QTime time;
     int speed;
@@ -55,6 +36,5 @@ private:
     int oldpos;
     int oldtime;
     float progress;
-    int escCtr;
 };
 
