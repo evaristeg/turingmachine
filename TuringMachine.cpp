@@ -223,12 +223,12 @@ void TuringMachine::paintEvent(QPaintEvent * event)
         interp = 1.;
     qreal tapeRot = rBegin + rDelta * interp;
 
-    qreal boxWid = 2. * pi / (1.2 * tape.size());
-    boxWid = boxWid / (1. + boxWid);
+    qreal innerRadius = 1.12 * tape.size() / (2. * pi) + 1.2;
+    qreal boundRadius = innerRadius + 1.2;
     QPainterPath box;
-    box.addRect(-.5 * boxWid, -.5 * boxWid, boxWid, boxWid);
+    box.addRect(-.5, -1., 1., 1.);
     QPainterPath window;
-    window.addRect(-.7 * boxWid, -.7 * boxWid, 1.4 * boxWid, 1.4 * boxWid);
+    window.addRect(-.7, -1.2, 1.4, 1.4);
     window = window.subtracted(box);
     QFont labelFont;
     qreal fontScale = 10. / QFontMetricsF(labelFont).ascent();
@@ -237,45 +237,45 @@ void TuringMachine::paintEvent(QPaintEvent * event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     int dimension = std::min(width(), height());
-    painter.scale(dimension / 2.2, dimension / 2.2);
-    painter.translate(1.1, 1.1);
-    painter.setPen(QPen(Qt::black, boxWid * 0.05, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
+    painter.scale(dimension / (2. * boundRadius), dimension / (2. * boundRadius));
+    painter.translate(boundRadius, boundRadius);
+    painter.setPen(QPen(Qt::black, 0.05, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
 
     painter.save();
     painter.rotate(-tapeRot);
     for (int i = 0; i < tape.size(); ++i) {
         painter.setBrush(tape[i]);
-        painter.translate(0., -1.);
+        painter.translate(0., -innerRadius);
         painter.drawPath(box);
-        painter.translate(0., 1.);
+        painter.translate(0., innerRadius);
         painter.rotate(360. / tape.size());
     }
     painter.restore();
 
+    painter.translate(0., -innerRadius);
+
     painter.save();
     painter.setFont(labelFont);
-    painter.translate(0., -1.);
-    painter.scale(boxWid / 4., boxWid / 4.);
-    painter.setPen(QPen(Qt::black, 0., Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
+    painter.scale(1. / 4., 1. / 4.);
+    painter.setPen(QPen(Qt::black, 0., Qt::SolidLine));
     painter.setBrush(Qt::black);
-    painter.drawText(-5, 4, 10, 10, Qt::AlignHCenter, state->label());
+    painter.drawText(-5, 2, 10, 10, Qt::AlignHCenter, state->label());
     painter.restore();
 
     painter.save();
-    painter.translate(0., -1.);
     painter.setPen(Qt::NoPen);
     painter.setBrush(Qt::darkGray);
     painter.drawPath(window);
     painter.restore();
 
     painter.save();
-    painter.translate(-1.5 * boxWid, -1. + 4.5 * boxWid);
+    painter.translate(-1.5, 4.5);
     painter.setBrush(registers.lo);
     painter.drawPath(box);
-    painter.translate(1.5 * boxWid, 0.);
+    painter.translate(1.5, 0.);
     painter.setBrush(registers.samp);
     painter.drawPath(box);
-    painter.translate(1.5 * boxWid, 0.);
+    painter.translate(1.5, 0.);
     painter.setBrush(registers.hi);
     painter.drawPath(box);
     painter.restore();
