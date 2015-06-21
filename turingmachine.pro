@@ -11,6 +11,7 @@ HEADERS += MainWidget.hpp
 HEADERS += ResetDialog.hpp
 HEADERS += TuringMachine.hpp
 
+SOURCES += InsertionSort.cpp
 SOURCES += main.cpp
 SOURCES += MainWidget.cpp
 SOURCES += MergeSort.cpp

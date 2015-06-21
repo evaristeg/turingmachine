@@ -23,6 +23,7 @@ struct Machine
     virtual bool halted() const = 0;
 };
 
+std::unique_ptr<Machine> createInsertionSort();
 std::unique_ptr<Machine> createMergeSort();
 
 inline float hueSep(QColor const & a, QColor const & b)
