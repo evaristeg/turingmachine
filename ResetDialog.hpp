@@ -8,7 +8,7 @@ class ResetDialog : public QDialog
     Q_OBJECT
 
 public:
-    ResetDialog(QWidget * parent = 0);
+    ResetDialog(int presetSize, QWidget * parent = 0);
     QSize sizeHint() const Q_DECL_OVERRIDE;
 
 public slots:

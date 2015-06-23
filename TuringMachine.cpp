@@ -35,16 +35,20 @@ void TuringMachine::setSpeed(int ms)
     }
 }
 
-void TuringMachine::pause()
+bool TuringMachine::pause()
 {
+    bool wasPaused = paused;
     paused = true;
+    return wasPaused;
 }
 
-void TuringMachine::unpause()
+bool TuringMachine::unpause()
 {
+    bool wasPaused = paused;
     paused = false;
     oldtime = time.elapsed();
     update();
+    return wasPaused;
 }
 
 void TuringMachine::reset(int tapeLen)
@@ -53,7 +57,6 @@ void TuringMachine::reset(int tapeLen)
     machine->reset(tape);
     pos = oldpos = 0;
     started = false;
-    setSpeed(speed); // determine paused status
 }
 
 void TuringMachine::renderBox(QPainter & painter, QColor const & fill) const

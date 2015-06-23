@@ -6,11 +6,13 @@
 #include <QPushButton>
 #include <QSlider>
 
+static int tapeLen = 40;
+
 MainWidget::MainWidget(QWidget * parent)
 : QWidget(parent)
 {
     QGridLayout * layout = new QGridLayout(this);
-    tm = new TuringMachine(createMergeSort(), 40, this);
+    tm = new TuringMachine(createMergeSort(), tapeLen, this);
     QSlider * slider = new QSlider(Qt::Vertical, this);
     slider->setRange(20, 1500);
     slider->setValue(1000);
@@ -28,9 +30,15 @@ MainWidget::MainWidget(QWidget * parent)
 
 void MainWidget::showResetDialog()
 {
-    ResetDialog dialog;
-    tm->pause();
-    int tapeLen = dialog.exec();
-    tm->reset(tapeLen);
+    ResetDialog dialog(tapeLen);
+    bool wasPaused = tm->pause();
+    int tmpTapeLen = dialog.exec();
+    if (tmpTapeLen) {
+        tapeLen = tmpTapeLen;
+        tm->reset(tapeLen);
+    }
+    if (!wasPaused) {
+        tm->unpause();
+    }
 }
 

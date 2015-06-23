@@ -15,13 +15,14 @@ class TuringMachine : public QWidget
 
 public:
     TuringMachine(std::unique_ptr<Machine> && machine, int tapeLen, QWidget * parent = 0);
+    // These return the previous pause state
+    bool pause();
+    bool unpause();
     QSize sizeHint() const Q_DECL_OVERRIDE;
     void renderBox(QPainter & painter, QColor const & fill) const;
 
 public slots:
     void setSpeed(int ms);
-    void pause();
-    void unpause();
     void reset(int tapeLen);
 
 protected:

@@ -4,15 +4,16 @@
 #include <QPushButton>
 #include <QSlider>
 
-ResetDialog::ResetDialog(QWidget * parent)
+ResetDialog::ResetDialog(int presetSize, QWidget * parent)
 : QDialog(parent)
 {
     slider = new QSlider(Qt::Horizontal, this);
     slider->setMinimum(20);
     slider->setMaximum(200);
-    slider->setValue(40);
+    slider->setValue(presetSize);
     QPushButton * button = new QPushButton("Go", this);
-    QLabel * sizeLabel = new QLabel("40", this);
+    QLabel * sizeLabel = new QLabel(this);
+    sizeLabel->setNum(presetSize);
     sizeLabel->setAlignment(Qt::AlignRight);
     QLabel * instructions = new QLabel("Select tape size:");
     QObject::connect(slider, SIGNAL(valueChanged(int)), sizeLabel, SLOT(setNum(int)));
