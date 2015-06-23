@@ -69,6 +69,7 @@ void TuringMachine::renderBox(QPainter & painter, QColor const & fill) const
 
 void TuringMachine::paintEvent(QPaintEvent * event)
 {
+    (void)event;
     if (!paused) {
         int curtime = time.elapsed();
         if (!started) {
@@ -120,7 +121,7 @@ void TuringMachine::paintEvent(QPaintEvent * event)
 
     painter.save();
     painter.rotate(-tapeRot);
-    for (int i = 0; i < tape.size(); ++i) {
+    for (int i = 0; i < (int)tape.size(); ++i) {
         painter.setBrush(tape[i]);
         painter.translate(0., -innerRadius);
         painter.drawPath(box);
