@@ -16,5 +16,6 @@ SOURCES += main.cpp
 SOURCES += MainWidget.cpp
 SOURCES += MergeSort.cpp
 SOURCES += ResetDialog.cpp
+SOURCES += Sieve.cpp
 SOURCES += TuringMachine.cpp
 

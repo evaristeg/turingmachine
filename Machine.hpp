@@ -25,6 +25,7 @@ struct Machine
 
 std::unique_ptr<Machine> createInsertionSort();
 std::unique_ptr<Machine> createMergeSort();
+std::unique_ptr<Machine> createSieve();
 
 inline float hueSep(QColor const & a, QColor const & b)
 {

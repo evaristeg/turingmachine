@@ -12,7 +12,7 @@ MainWidget::MainWidget(QWidget * parent)
 : QWidget(parent)
 {
     QGridLayout * layout = new QGridLayout(this);
-    tm = new TuringMachine(createMergeSort(), tapeLen, this);
+    tm = new TuringMachine(createSieve(), tapeLen, this);
     QSlider * slider = new QSlider(Qt::Vertical, this);
     slider->setRange(20, 1500);
     slider->setValue(1000);
