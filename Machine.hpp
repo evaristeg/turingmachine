@@ -17,7 +17,7 @@ struct TapeTransition
 struct Machine
 {
     virtual ~Machine() {}
-    virtual void reset(int tapeLen, QColor const & current) = 0;
+    virtual void reset(std::vector<QColor> & tape) = 0;
     virtual TapeTransition advance(QColor const & current) = 0;
     virtual void renderHead(QPainter & painter, TuringMachine const & tm) const = 0;
     virtual bool halted() const = 0;

@@ -4,7 +4,10 @@
 #include <QTime>
 #include <QWidget>
 #include <memory>
+#include <random>
 #include <vector>
+
+extern std::mt19937 rng;
 
 class TuringMachine : public QWidget
 {

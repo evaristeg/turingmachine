@@ -50,13 +50,8 @@ void TuringMachine::unpause()
 void TuringMachine::reset(int tapeLen)
 {
     tape.resize(tapeLen);
-    for (int i = 0; i < tapeLen; ++i) {
-        //tape[i] = QColor::fromHslF(qreal(qrand()) / RAND_MAX, .9, .5);
-        tape[i] = QColor::fromHslF(qreal(i) / tapeLen, .9, .5);
-    }
-    std::shuffle(tape.begin(), tape.end(), rng);
+    machine->reset(tape);
     pos = oldpos = 0;
-    machine->reset(tapeLen, tape[0]);
     started = false;
     setSpeed(speed); // determine paused status
 }

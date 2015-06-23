@@ -1,5 +1,6 @@
 #include "Machine.hpp"
 #include "TuringMachine.hpp"
+#include <algorithm>
 
 // Black version is a little easier to visualize
 #define AllowBlackTape() 0
@@ -21,13 +22,17 @@ struct MergeSort : public Machine
 
     virtual ~MergeSort() {}
 
-    virtual void reset(int tapeLen, QColor const & current)
+    virtual void reset(std::vector<QColor> & tape)
     {
+        tapeLen = (int)tape.size();
+        for (int i = 0; i < tapeLen; ++i) {
+            tape[i] = QColor::fromHslF(qreal(i) / tapeLen, .9, .5);
+        }
+        std::shuffle(tape.begin(), tape.end(), rng);
         state = SCAN;
-        r.lo = r.hi = current;
+        r.lo = r.hi = tape[0];
         r.samp = Qt::black;
         escCtr = 0;
-        this->tapeLen = tapeLen;
     }
 
     struct Transition {

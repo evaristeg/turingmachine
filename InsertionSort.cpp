@@ -1,5 +1,6 @@
 #include "Machine.hpp"
 #include "TuringMachine.hpp"
+#include <algorithm>
 
 struct InsertionSort : public Machine
 {
@@ -17,13 +18,17 @@ struct InsertionSort : public Machine
 
     virtual ~InsertionSort() {}
 
-    virtual void reset(int tapeLen, QColor const & current)
+    virtual void reset(std::vector<QColor> & tape)
     {
+        tapeLen = (int)tape.size();
+        for (int i = 0; i < tapeLen; ++i) {
+            tape[i] = QColor::fromHslF(qreal(i) / tapeLen, .9, .5);
+        }
+        std::shuffle(tape.begin(), tape.end(), rng);
         state = SCAN;
-        r.lo = r.hi = current;
+        r.lo = r.hi = tape[0];
         r.samp = Qt::black;
         r.escCtr = 0;
-        this->tapeLen = tapeLen;
     }
 
     struct Transition {
