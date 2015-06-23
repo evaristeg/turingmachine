@@ -32,6 +32,5 @@ void MainWidget::showResetDialog()
     tm->pause();
     int tapeLen = dialog.exec();
     tm->reset(tapeLen);
-    tm->unpause();
 }
 

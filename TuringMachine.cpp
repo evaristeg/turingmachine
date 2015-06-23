@@ -54,6 +54,7 @@ void TuringMachine::reset(int tapeLen)
     pos = oldpos = 0;
     machine->reset(tapeLen, tape[0]);
     started = false;
+    setSpeed(speed); // determine paused status
 }
 
 void TuringMachine::renderBox(QPainter & painter, QColor const & fill) const
