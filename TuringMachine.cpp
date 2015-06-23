@@ -2,9 +2,11 @@
 #include <QPainter>
 #include <algorithm>
 #include <cmath>
+#include <random>
 #include <utility>
 
 double const pi = 3.141592653589793238463;
+std::mt19937 rng;
 
 TuringMachine::TuringMachine(std::unique_ptr<Machine> && machine, int tapeLen, QWidget * parent)
 : QWidget(parent)
@@ -12,7 +14,7 @@ TuringMachine::TuringMachine(std::unique_ptr<Machine> && machine, int tapeLen, Q
 , speed(1000)
 , paused(false)
 {
-    qsrand(time.msecsSinceStartOfDay());
+    rng.seed(time.msecsSinceStartOfDay());
     reset(tapeLen);
     time.start();
 }
@@ -49,8 +51,10 @@ void TuringMachine::reset(int tapeLen)
 {
     tape.resize(tapeLen);
     for (int i = 0; i < tapeLen; ++i) {
-        tape[i] = QColor::fromHslF(qreal(qrand()) / RAND_MAX, .9, .5);
+        //tape[i] = QColor::fromHslF(qreal(qrand()) / RAND_MAX, .9, .5);
+        tape[i] = QColor::fromHslF(qreal(i) / tapeLen, .9, .5);
     }
+    std::shuffle(tape.begin(), tape.end(), rng);
     pos = oldpos = 0;
     machine->reset(tapeLen, tape[0]);
     started = false;
