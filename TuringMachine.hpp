@@ -22,8 +22,9 @@ public:
     void renderBox(QPainter & painter, QColor const & fill) const;
 
 public slots:
-    void setSpeed(int ms);
+    void setSpeed(int milliLogMsecs);
     void reset(int tapeLen);
+    void setFixTape(int fixTape);
 
 protected:
     void paintEvent(QPaintEvent * event) Q_DECL_OVERRIDE;
@@ -34,11 +35,12 @@ private:
     int pos;
 
     QTime time;
-    int speed;
+    float speed;
     bool started;
     bool paused;
     int oldpos;
     int oldtime;
     float progress;
+    bool fixTape;
 };
 

@@ -11,8 +11,9 @@ std::mt19937 rng;
 TuringMachine::TuringMachine(std::unique_ptr<Machine> && machine, int tapeLen, QWidget * parent)
 : QWidget(parent)
 , machine(std::move(machine))
-, speed(1000)
+, speed(1024.)
 , paused(false)
+, fixTape(false)
 {
     rng.seed(time.msecsSinceStartOfDay());
     reset(tapeLen);
@@ -24,13 +25,13 @@ QSize TuringMachine::sizeHint() const
     return QSize(500, 500);
 }
 
-void TuringMachine::setSpeed(int ms)
+void TuringMachine::setSpeed(int milliLogMsecs)
 {
-    speed = ms;
-    if (speed == 1500) {
+    if (milliLogMsecs == 11000) {
         pause();
     }
     else {
+        speed = pow(2., milliLogMsecs / 1000.);
         unpause();
     }
 }
@@ -57,6 +58,12 @@ void TuringMachine::reset(int tapeLen)
     machine->reset(tape);
     pos = oldpos = 0;
     started = false;
+}
+
+void TuringMachine::setFixTape(int fixTape)
+{
+    this->fixTape = fixTape;
+    update();
 }
 
 void TuringMachine::renderBox(QPainter & painter, QColor const & fill) const
@@ -123,7 +130,8 @@ void TuringMachine::paintEvent(QPaintEvent * event)
     painter.setPen(QPen(Qt::black, 0.05, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
 
     painter.save();
-    painter.rotate(-tapeRot);
+    if (!fixTape)
+        painter.rotate(-tapeRot);
     for (int i = 0; i < (int)tape.size(); ++i) {
         painter.setBrush(tape[i]);
         painter.translate(0., -innerRadius);
@@ -133,6 +141,8 @@ void TuringMachine::paintEvent(QPaintEvent * event)
     }
     painter.restore();
 
+    if (fixTape)
+        painter.rotate(tapeRot);
     painter.translate(0., -innerRadius);
 
     painter.save();
